@@ -1,0 +1,936 @@
+/* ===================== Tokens ===================== */
+:root {
+  --color-bg: #eef6f9;
+  --color-surface: #ffffff;
+  --color-text: #1b2430;
+  --color-text-muted: #45505e;
+  --color-primary: #1f7a8c;
+  --color-primary-dark: #145a68;
+  --color-accent: #e8871e;
+  --color-border: #c7d6dc;
+  --color-error: #b3261e;
+  --color-error-bg: #fdecea;
+  --color-overlay-bg: rgba(10, 20, 30, 0.55);
+  --color-on-primary: #ffffff;
+  --color-chip-bg: #cfe3ea;
+  --color-chip-text: #145a68;
+
+  --nav-height: 64px;
+  --breakpoint-laptop: 768px;
+  --radius: 12px;
+  --focus-ring: 3px solid #0b5fff;
+  color-scheme: light;
+}
+
+/* Night appearance (Requirements 38-40): js/theme.js sets data-theme on <html>.
+   Only the tokens change; native controls follow through color-scheme. */
+:root[data-theme="dark"] {
+  --color-bg: #0e171d;
+  --color-surface: #17242c;
+  --color-text: #e9eff3;
+  --color-text-muted: #b4c0ca;
+  --color-primary: #6cc3d5;
+  --color-primary-dark: #9adbe8;
+  --color-accent: #f0a04a;
+  --color-border: #3a5663;
+  --color-error: #ffb4ab;
+  --color-error-bg: #3a1714;
+  --color-overlay-bg: rgba(0, 0, 0, 0.65);
+  --color-on-primary: #0b1e25;
+  --color-chip-bg: #243d49;
+  --color-chip-text: #d6eef4;
+  --focus-ring: 3px solid #8ab4ff;
+  color-scheme: dark;
+}
+
+/* The otter, backpacks and reminder icons are drawn with dark outlines, which
+   vanish on a dark page: give them a light outline glow in the dark theme. */
+:root[data-theme="dark"] .otter-art,
+:root[data-theme="dark"] .backpack-icon,
+:root[data-theme="dark"] .reminder-icon-img {
+  filter: drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.95));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  /* Leave room above the fixed navigation when keyboard focus scrolls. */
+  scroll-padding-bottom: calc(var(--nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* ===================== Utilities ===================== */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  padding: 0.75rem 1rem;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  scroll-margin-bottom: 0.5rem;
+}
+
+button {
+  font: inherit;
+}
+
+/* ===================== Layout shell ===================== */
+#main-content {
+  padding: 1rem 1rem calc(var(--nav-height) + 1rem);
+  max-width: 960px;
+  margin: 0 auto;
+  /* A single long word at large text sizes wraps instead of widening the page. */
+  overflow-wrap: break-word;
+}
+
+#view-details:not([hidden]),
+#view-home:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.view[hidden] {
+  display: none;
+}
+
+/* ===================== Bottom navigation ===================== */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  height: var(--nav-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 44px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.nav-btn[aria-current="page"] {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.nav-btn[aria-current="page"]::after {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+/* Lucide SVGs used as masks so they take the button's text color */
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+#nav-details .nav-icon { --icon: url("../assets/icons/ui/calendar-days.svg"); }
+#nav-home .nav-icon { --icon: url("../assets/icons/ui/house.svg"); }
+#nav-info .nav-icon { --icon: url("../assets/icons/ui/info.svg"); }
+
+.reminder-icon {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.35em;
+  vertical-align: -0.2em;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.reminder-icon-umbrella { --icon: url("../assets/icons/ui/umbrella.svg"); }
+.reminder-icon-hydration { --icon: url("../assets/icons/ui/droplet.svg"); }
+
+.nav-label {
+  font-size: 0.75rem;
+}
+
+/* ===================== Buttons & forms ===================== */
+.btn {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* City and State sit side by side; when enlarged text leaves City too little
+   room, State wraps to its own line instead of pushing past the screen edge. */
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-row .field:first-child {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.field-row .field:nth-child(2) {
+  flex: 0 0 5rem;
+  min-width: 0;
+}
+
+.field-row button {
+  flex: 1 1 100%;
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.field-error {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0 0;
+}
+
+.location-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#btn-use-my-location {
+  margin-top: 1rem;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+
+.switch-row[hidden] {
+  display: none; /* the display rule above would otherwise show it */
+}
+
+.switch-row input {
+  width: 24px;
+  height: 24px;
+}
+
+.details-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ===================== Details: day picker & hourly row ===================== */
+.day-picker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  /* Tight enough that seven 44px-wide buttons fit a 360px phone. */
+  gap: 0.15rem;
+  margin: 1.5rem 0 1rem;
+}
+
+/* Below ~345px seven 44px buttons no longer fit in one row: wrap 4 + 3. */
+@media (max-width: 344px) {
+  .day-picker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+}
+
+.day-cell {
+  min-height: 44px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.75rem;
+  flex: 1;
+}
+
+.day-cell[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  font-weight: 700;
+  flex: 1.5;
+}
+
+.day-cell[aria-pressed="true"]::before {
+  content: "\25B2";
+  font-size: 0.6rem;
+  color: var(--color-primary);
+}
+
+.day-cell-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.hourly-precip-wrapper {
+  margin-top: 1rem;
+}
+
+.hourly-row-label,
+.precip-chart-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.hourly-row-label {
+  margin-bottom: 0.35rem;
+}
+
+.precip-chart-label {
+  margin-top: 0.35rem;
+}
+
+.hourly-precip-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.hourly-row {
+  display: flex;
+  gap: 0;
+  min-width: max-content;
+  padding: 1rem 0.5rem 0;
+}
+
+.hour-cell {
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.25rem;
+  position: relative;
+  border-left: 1px solid var(--color-border);
+}
+
+.hour-cell:first-child {
+  border-left: none;
+}
+
+.hour-cell.is-now {
+  font-weight: 700;
+}
+
+.hour-cell.is-now::after {
+  content: "now";
+  font-size: 0.6rem;
+  color: var(--color-primary);
+}
+
+.precip-chart {
+  display: flex;
+  gap: 0;
+  height: 70px;
+  padding: 0 0.5rem;
+  min-width: max-content;
+}
+
+/* Full-height column so the separator line runs to the bottom of the chart */
+.precip-col {
+  flex: 0 0 60px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-left: 1px solid var(--color-border);
+}
+
+.precip-col:first-child {
+  border-left: none;
+}
+
+.precip-bar {
+  width: 50%;
+  background: var(--color-primary);
+  opacity: 0.45;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+
+.precip-col.is-now .precip-bar {
+  opacity: 1;
+  background: var(--color-primary-dark);
+}
+
+/* Selected day info panel (phone only) */
+.selected-day-panel {
+  display: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.selected-day-panel.visible {
+  display: block;
+}
+
+.selected-day-panel-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.selected-day-panel-temps {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.selected-day-panel-weather {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+/* ===================== Home ===================== */
+.home-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 0.75rem;
+}
+
+.location-date-box {
+  display: flex;
+  flex-wrap: wrap; /* enlarged text moves the location text below the icon */
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.location-date-text {
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+
+.weather-icon {
+  width: 56px;
+  height: 56px;
+}
+
+.weather-icon-small {
+  width: 28px;
+  height: 28px;
+}
+
+.weather-icon-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 116px;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  background: var(--color-chip-bg);
+  color: var(--color-chip-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.weather-icon-badge .weather-icon {
+  width: 80px;
+  height: 80px;
+}
+
+.home-location {
+  font-weight: 700;
+  margin: 0;
+}
+
+.home-date,
+.home-units-source,
+.home-data-source {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.recommendation-box {
+  flex: 2 1 220px;
+}
+
+.home-recommendation {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.home-reminders {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.week-strip {
+  display: none;
+}
+
+.week-strip-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 0.75rem;
+}
+
+.week-strip-cell.is-selected {
+  border-color: var(--color-primary);
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.week-strip-cell.is-selected::before {
+  content: "\25B2";
+  font-size: 0.6rem;
+  color: var(--color-primary);
+}
+
+.otter-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.otter-art {
+  width: 205px;
+  aspect-ratio: 432 / 578;
+  position: relative;
+  background: url("../assets/art/otter-base.png") center / 100% 100% no-repeat;
+  animation: otter-idle-bob 3s ease-in-out infinite;
+}
+
+.otter-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.motion-paused .otter-art {
+  animation-play-state: paused;
+}
+
+@keyframes otter-idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Backpack | list | backpack, with the list centered under the otter */
+.checklist {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.backpack-icon {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.reminder-icon-img {
+  width: 1.5em;
+  height: 1.5em;
+  margin-right: 0.35em;
+  vertical-align: -0.4em;
+  object-fit: contain;
+}
+
+/* Mirror the left backpack so the pair faces each other */
+.backpack-icon-left {
+  transform: scaleX(-1);
+}
+
+/* Phone: one column so every checkbox lines up vertically, with the block
+   itself centered under the otter. Laptop switches back to a single row. */
+.checklist-items {
+  display: grid;
+  justify-content: center;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.checklist-items li {
+  display: flex;
+}
+
+.checklist-items label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0.25rem 0.35rem;
+}
+
+/* Long labels wrap vertically instead of widening the page. */
+.checklist-items label > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.checklist-items input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* Narrow phones: reserve room for the aligned checklist between backpacks. */
+@media (max-width: 360px) {
+  .checklist {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    gap: 0.5rem;
+  }
+
+  .backpack-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .checklist-items {
+    justify-content: stretch;
+  }
+
+  .checklist-items label {
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .checklist-items .reminder-icon,
+  .checklist-items .reminder-icon-img {
+    flex-shrink: 0;
+  }
+}
+
+/* Enlarged text on a small screen: the Home view is narrow measured in text
+   widths (em follows the view's own font size, so this reacts to text size
+   and zoom alike). The decorative backpacks make way for the checklist. */
+#view-home {
+  container-type: inline-size;
+}
+
+@container (max-width: 15em) {
+  .checklist {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .backpack-icon {
+    display: none;
+  }
+}
+
+/* ===================== Information ===================== */
+.info-section {
+  margin-bottom: 1.5rem;
+}
+
+.info-section h2 {
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.25rem;
+}
+
+.info-section ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.3rem;
+}
+
+.info-section li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.info-section a {
+  color: var(--color-primary);
+}
+
+/* ===================== Overlay ===================== */
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay-bg);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 1rem;
+}
+
+.overlay-window {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  /* Enlarged text can make the window taller than the screen: scroll inside
+     it rather than cutting off its top or its action buttons. */
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.overlay-window h2 {
+  margin-top: 0;
+}
+
+.overlay-otter {
+  width: 105px;
+  margin: 0 auto 0.75rem;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Electric-blue hover outline on every button (pointer devices only, so
+   touch screens don't keep a stuck highlight after a tap) */
+@media (hover: hover) {
+  button:not(:disabled):hover {
+    outline: 3px solid #0099ff;
+    outline-offset: 2px;
+  }
+
+  .nav-btn:hover {
+    outline-offset: -4px;
+  }
+}
+
+/* ===================== Laptop breakpoint ===================== */
+@media (min-width: 768px) {
+  :root {
+    --nav-height: 56px;
+  }
+
+  #main-content {
+    padding-bottom: calc(var(--nav-height) + 0.5rem);
+  }
+
+  .bottom-nav {
+    height: var(--nav-height);
+  }
+
+  .nav-btn {
+    min-height: 24px;
+  }
+
+  .week-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    order: -1;
+  }
+
+  .hourly-row {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .hour-cell {
+    min-width: 0;
+  }
+
+  .hourly-row,
+  .precip-chart {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  .precip-col {
+    flex: none;
+  }
+
+  /* Home on laptop: fill the screen so the checklist sits just above the nav
+     bar, the otter is centered in the space between, and everything is larger */
+  #view-home:not([hidden]) {
+    min-height: calc(100vh - var(--nav-height) - 1.5rem);
+  }
+
+  #view-home .otter-stage {
+    margin: auto 0;
+  }
+
+  #view-home .otter-art {
+    width: 262px;
+  }
+
+  .backpack-icon {
+    width: 92px;
+    height: 92px;
+  }
+
+  .checklist-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .checklist-items label {
+    font-size: 1.25rem;
+    min-height: 56px;
+    gap: 0.5rem;
+  }
+
+  .checklist-items input[type="checkbox"] {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ===================== Reduced motion ===================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

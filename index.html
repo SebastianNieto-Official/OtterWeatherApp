@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Otter Weather</title>
+  <meta name="description" content="Weather-based outfit recommendations for US college students." />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <main id="main-content">
+    <!-- ===================== Details view ===================== -->
+    <section id="view-details" class="view" aria-labelledby="details-heading" hidden>
+      <h1 id="details-heading" class="visually-hidden">Details</h1>
+
+      <form id="location-form" class="location-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label for="input-city">City</label>
+            <input type="text" id="input-city" name="city" autocomplete="address-level2" />
+          </div>
+          <div class="field">
+            <label for="input-state">State</label>
+            <input type="text" id="input-state" name="state" autocomplete="address-level1" maxlength="2" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-set-location">Set location</button>
+        </div>
+        <p id="location-error" class="field-error" role="alert" hidden></p>
+
+        <button type="button" class="btn btn-secondary" id="btn-use-my-location">Use my location</button>
+      </form>
+
+      <p id="details-status" class="status-message" role="status" hidden>
+        <span class="spinner" id="details-status-spinner" aria-hidden="true" hidden></span>
+        <span id="details-status-text"></span>
+      </p>
+
+      <div class="day-picker" id="day-picker" role="group" aria-label="Choose a day">
+        <!-- 7 day cells injected by JS -->
+      </div>
+
+      <div class="selected-day-panel" id="selected-day-panel">
+        <div class="selected-day-panel-label" id="selected-day-label"></div>
+        <div class="selected-day-panel-temps" id="selected-day-temps"></div>
+        <div class="selected-day-panel-weather" id="selected-day-weather"></div>
+      </div>
+
+      <div class="hourly-precip-wrapper">
+        <h2 class="visually-hidden" id="hourly-heading">Hourly forecast and precipitation</h2>
+        <div class="hourly-row-label" aria-hidden="true">Hourly forecast</div>
+        <div class="hourly-precip-scroll">
+          <div class="hourly-row" id="hourly-row" role="group" aria-labelledby="hourly-heading">
+            <!-- hour cells injected by JS -->
+          </div>
+          <div class="precip-chart" id="precip-chart" aria-label="Hourly precipitation percentage">
+            <!-- precip bars injected by JS -->
+          </div>
+        </div>
+        <div class="precip-chart-label" aria-hidden="true">Precipitation</div>
+      </div>
+
+      <div class="details-toggles">
+        <label class="switch-row">
+          <input type="checkbox" id="toggle-pause-animation" />
+          <span>Pause character animation</span>
+        </label>
+        <label class="switch-row">
+          <input type="checkbox" id="toggle-auto-theme" checked />
+          <span>Automatic day/night mode</span>
+        </label>
+        <label class="switch-row" id="theme-manual-row" hidden>
+          <input type="checkbox" id="toggle-dark-mode" />
+          <span>Dark mode</span>
+        </label>
+        <button type="button" class="btn btn-secondary" id="btn-clear-location">Clear saved location</button>
+      </div>
+    </section>
+
+    <!-- ===================== Home view ===================== -->
+    <section id="view-home" class="view" aria-labelledby="home-heading">
+      <h1 id="home-heading" class="visually-hidden">Home</h1>
+
+      <header class="home-header">
+        <div class="location-date-box">
+          <span class="weather-icon-badge" id="home-weather-badge"></span>
+          <div class="location-date-text">
+            <p id="home-location" class="home-location">&mdash;</p>
+            <p id="home-date" class="home-date">&mdash;</p>
+            <p id="home-units-source" class="home-units-source">&mdash;</p>
+            <p id="home-data-source" class="home-data-source">&mdash;</p>
+          </div>
+        </div>
+        <div class="recommendation-box">
+          <p id="home-recommendation" class="home-recommendation">&mdash;</p>
+          <ul id="home-reminders" class="home-reminders"></ul>
+        </div>
+      </header>
+
+      <p id="home-status" class="status-message" role="status" hidden>
+        <span class="spinner" id="home-status-spinner" aria-hidden="true" hidden></span>
+        <span id="home-status-text"></span>
+      </p>
+
+      <div class="week-strip" id="week-strip" aria-hidden="true">
+        <!-- laptop-only compact 7-day strip, injected by JS -->
+      </div>
+
+      <div class="otter-stage" id="otter-stage">
+        <div class="otter-art" id="otter-art" role="img" aria-label=""></div>
+      </div>
+
+      <div class="checklist" id="checklist" hidden>
+        <img class="backpack-icon backpack-icon-left" src="assets/art/backpack.png" alt="" />
+        <ul id="checklist-items" class="checklist-items"></ul>
+        <img class="backpack-icon backpack-icon-right" src="assets/art/backpack.png" alt="" />
+      </div>
+    </section>
+
+    <!-- ===================== Information view ===================== -->
+    <section id="view-info" class="view" aria-labelledby="info-heading" hidden>
+      <h1 id="info-heading">Information</h1>
+
+      <section class="info-section" aria-labelledby="info-creator-heading">
+        <h2 id="info-creator-heading">Creator</h2>
+        <p>
+          AET 330T student project by
+          <a href="https://github.com/SebastianNieto-Official">SebastianNieto-Official</a>
+          on GitHub.
+        </p>
+      </section>
+
+      <section class="info-section" aria-labelledby="info-weather-heading">
+        <h2 id="info-weather-heading">Weather data source</h2>
+        <p>
+          All current and forecast weather data comes from
+          <a href="https://open-meteo.com/en/docs">Open-Meteo</a>, used under
+          its <a href="https://open-meteo.com/en/terms">CC BY 4.0</a> license
+          and free, non-commercial tier.
+        </p>
+      </section>
+
+      <section class="info-section" aria-labelledby="info-methods-heading">
+        <h2 id="info-methods-heading">Recommendation methods and sources</h2>
+        <ul>
+          <li>
+            Outfit categories are based on feels-like (apparent) temperature
+            bands. No single authoritative source defines clothing-by-temperature
+            bands, so these cutoffs (Scorching 90&deg;F+, Warm
+            70-89&deg;F, Mild 48-69&deg;F, Cold 33-47&deg;F, Freezing 32&deg;F
+            and below) are a Developer design choice.
+          </li>
+          <li>
+            Sunscreen and hat reminders follow the
+            <a href="https://www.epa.gov/sunsafety/uv-index-scale-1">EPA UV
+            Index Scale</a> (UV 3 and above).
+          </li>
+          <li>
+            The hydration reminder follows
+            <a href="https://www.weather.gov/ama/heatindex">NWS heat index</a>
+            guidance (feels-like 80&deg;F and above).
+          </li>
+          <li>
+            Cold-weather layering is informed by
+            <a href="https://www.weather.gov/safety/cold-wind-chill-chart">NWS
+            wind chill</a> guidance.
+          </li>
+          <li>
+            The footwear rule (open-toe only in warm, dry, low-wind
+            conditions) and the rain/poncho thresholds are a Developer design
+            choice.
+          </li>
+        </ul>
+      </section>
+
+      <section class="info-section" aria-labelledby="info-privacy-heading">
+        <h2 id="info-privacy-heading">Privacy</h2>
+        <ul>
+          <li>Device location is requested only when you tap "Use my location" - never automatically.</li>
+          <li>
+            Only your most recent location (name and coordinates) is stored
+            on this device, in your browser's local storage. Checklist
+            ticks, the pause-animation and day/night settings, and outfit/wording history
+            are never stored.
+          </li>
+          <li>This app sets no cookies and runs no analytics or tracking of any kind.</li>
+          <li>
+            Using this app sends your coordinates or place name to
+            Open-Meteo to fetch the forecast. The site host,
+            <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site">GitHub
+            Pages</a>, receives the same ordinary request data (such as your
+            IP address) that any web host receives.
+          </li>
+        </ul>
+      </section>
+
+      <section class="info-section" aria-labelledby="info-credits-heading">
+        <h2 id="info-credits-heading">Art credits</h2>
+        <ul>
+          <li>
+            The otter character, the backpack icon, and the
+            poncho/hat/sunscreen reminder icons were generated with Google
+            Gemini.
+          </li>
+          <li>
+            The otter's clothing and accessory layers (shirts, bottoms,
+            jackets, footwear, scarf, hats, poncho, and umbrella) were drawn
+            as SVG graphics by Claude, an AI assistant from Anthropic, and
+            fitted to the Gemini otter.
+          </li>
+          <li>
+            Weather icons are from
+            <a href="https://github.com/basmilius/weather-icons">Meteocons</a>
+            (MIT License).
+          </li>
+          <li>
+            Navigation icons and the umbrella/hydration reminder icons are
+            from <a href="https://lucide.dev/license">Lucide</a> (ISC
+            License).
+          </li>
+          <li>
+            The full copyright and license notices for the Meteocons and
+            Lucide icons are in the
+            <a href="assets/icons/LICENSES.txt">icon license notices</a>.
+          </li>
+        </ul>
+      </section>
+    </section>
+  </main>
+
+  <!-- Overlay root: populated by JS (no-location prompt / blocking-issue overlay) -->
+  <div id="overlay-root"></div>
+
+  <!-- ===================== Bottom navigation ===================== -->
+  <nav class="bottom-nav" aria-label="Primary">
+    <button type="button" class="nav-btn" data-view="details" id="nav-details">
+      <span class="nav-icon" aria-hidden="true"></span>
+      <span class="nav-label">Details</span>
+    </button>
+    <button type="button" class="nav-btn" data-view="home" id="nav-home" aria-current="page">
+      <span class="nav-icon" aria-hidden="true"></span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button type="button" class="nav-btn" data-view="info" id="nav-info">
+      <span class="nav-icon" aria-hidden="true"></span>
+      <span class="nav-label">Information</span>
+    </button>
+  </nav>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
